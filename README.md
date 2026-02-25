@@ -1,5 +1,4 @@
-# CapImagine
-Official Implementation of Imagination Helps Visual Reasoning, But Not Yet in Latent Space
+# Imagination Helps Visual Reasoning, But Not Yet in Latent Space
 
 ## 🔍Abstract
 Latent visual reasoning aims to mimic human's *imagination* process by meditating through hidden states of Multimodal Large Language Models.
