@@ -1,5 +1,5 @@
 # Imagination Helps Visual Reasoning, But Not Yet in Latent Space
-[You Li](https://scholar.google.com.hk/citations?user=RZ5bOS0AAAAJ&hl=zh-CN), [Chen Chi*](https://openreview.net/profile?id=~Chi_Chen1), [Yanghao Li](https://openreview.net/profile?id=~Yanghao_Li2), [Fanhu Zeng](https://aurorazengfh.github.io/) (Looking for Ph.D.), [Kaiyu Huang](https://openreview.net/profile?id=~Kaiyu_Huang1), Jinan Xu, Maosong Sun
+[You Li](https://scholar.google.com.hk/citations?user=RZ5bOS0AAAAJ&hl=zh-CN), [Chen Chi*](https://openreview.net/profile?id=~Chi_Chen1), [Yanghao Li](https://openreview.net/profile?id=~Yanghao_Li2), [Fanhu Zeng](https://aurorazengfh.github.io/) (📢Looking for PhD!), [Kaiyu Huang](https://openreview.net/profile?id=~Kaiyu_Huang1), Jinan Xu, Maosong Sun
 
 
 -----
@@ -15,7 +15,7 @@ We believe our study provides a rigorous investigation of current latent visual 
 
 ## News
 * **[2026.02.26]** 🌞🌞🌞 Our paper has been released at [Arxiv](https://arxiv.org/abs/2501.05767) and [Huggingface Daily Papers](https://arxiv.org/abs/2501.05767)!
-* **[2025.02.26]**  🌟🌟🌟 The model weights and datasets are now available on HuggingFace! 🤗 Download and have a try at [Huggingface Model](https://huggingface.co/Michael4933/CapImagine-7B)&[Huggingface Dataset](https://huggingface.co/Michael4933/CapImagine-Data)!
+* **[2025.02.26]**  🌟🌟🌟 The model weights and datasets are now available on HuggingFace! 🤗 Download and have a try at [Huggingface Model](https://huggingface.co/Michael4933/CapImagine-7B) & [Huggingface Dataset](https://huggingface.co/Michael4933/CapImagine-Data)!
 
 ## 🔍Abstract
 Latent visual reasoning aims to mimic human's *imagination* process by meditating through hidden states of Multimodal Large Language Models.
@@ -41,6 +41,9 @@ lalala
 ## Text-Space Imagination VS Latent-Based Imagination
 <img width="7245" height="3320" alt="图片3" src="https://github.com/user-attachments/assets/725c9c04-acbf-4687-9503-04fc361454d0" />
 
-## Technical Illustration of the Manipulation on Latent Tokens
+### Cases
+
+## Code Implementation
+The main logits of the manipulation of latent tokens happen as illustrated below. We modify the method of `generate` in `transformers.generation.utils`, and further alter the function of `self._sample` to adapt it to supporting latent-based reasoning.
 
 ## Latent Visual Reasoning Related Papers
