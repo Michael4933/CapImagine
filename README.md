@@ -107,10 +107,8 @@ Motivated by this limitation, we explore whether text-space reasoning can more e
 ### Cases
 
 ## 🔧Code Implementation
-The main logits of the manipulation of latent tokens happen as illustrated below. We modify the method of `generate` in `transformers.generation.utils`, and further alter the function of `self._sample` to adapt it to supporting latent-based reasoning.
+The pseudo [code](https://github.com/UMass-Embodied-AGI/Mirage) below provides the decoding logits for latent visual reasoning. The `self._sample` function in `transformers.generation.utils` controls how each token is decoded. Here, we utilize different switches `in_latent_mode, is_prefill, latent_start, latent_end, latent_num` to control the state of latent reasoning. Particuarly, `inputs_embeds = outputs.hidden_states` explicitly sets the input embeddings for the next token as the output hidden states from the last step. The manipulation of latent embedding could happen at here by adding gaussian noise or setting latent embedding as the same tensor. This framework provides a general and adaptable inference implmentation for various latent visual reasoning models such as Mirage, Monet and etc.
 
-<div style="max-height: 300px; overflow-y: auto;">  
-  
 ```python
 class GenerationMixin:
     ...
@@ -123,18 +121,13 @@ class GenerationMixin:
         # Latent Mode Core Section
         in_latent_mode = False
         is_prefill = True
-        latent_start = False
-        latent_end = False
+        latent_start, latent_end = False, False
         latent_num = 0
-        MAX_LATENT_LEN = 10 # latent size
-        latent_start_idx = 151666 # token index in vocabulary
-        latent_end_idx = 151667
-        latent_pad_idx = 151665
+        MAX_LATENT_LEN = 10 # control latent size
+        latent_start_idx, latent_end_idx, latent_pad_idx = 151666, 151667, 151665 # token index in vocabulary
         all_hidden_states = []
 
-        while self._has_unfinished_sequences(
-            this_peer_finished, synced_gpus, device=input_ids.device, cur_len=cur_len, max_length=max_length
-        ):
+        while self._has_unfinished_sequences(this_peer_finished, synced_gpus, device=input_ids.device, cur_len=cur_len, max_length=max_length):
             # adapatively change between inputting input_ids or inputs_embeds for latent reasoning
             if not in_latent_mode:              
                 model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
@@ -157,12 +150,7 @@ class GenerationMixin:
             else:
                 outputs = model_forward(**model_inputs, return_dict=True, generate_mode=True, latent_hidden_states=None)
 
-            # synced_gpus: don't waste resources running the code we don't need; kwargs must be updated before skipping
-            model_kwargs = self._update_model_kwargs_for_generation(
-                outputs, model_kwargs, is_encoder_decoder=self.config.is_encoder_decoder,
-            )
-            if synced_gpus and this_peer_finished:
-                continue
+            ...
 
             next_token_logits = outputs.logits[:, -1, :].clone().float()
             next_token_logits = next_token_logits.to(input_ids.device)
@@ -188,23 +176,23 @@ class GenerationMixin:
 
             # start from earliest and end after last in batch
             for i, token_str in enumerate(next_token_strs):
-                if token_str == latent_start_idx:
+                if token_str == latent_start_idx: # latent mode starts
                     in_latent_mode = True
                     latent_start = True
                     latent_end = False
                 
-                elif token_str == latent_end_idx:
+                elif token_str == latent_end_idx: # latent mode ends
                     latent_num = 0
                     latent_end = True
                     in_latent_mode = False
                 
-                elif in_latent_mode:
+                elif in_latent_mode: # in latent mode, continue
                     next_tokens[i] = latent_pad_idx
                     
             if in_latent_mode and not latent_end and not latent_start:
                 latent_num += 1
 
-                if latent_num > MAX_LATENT_LEN:
+                if latent_num > MAX_LATENT_LEN: # latent tokens too long, force termination
                     latent_end = True
                     in_latent_mode = False
                     latent_start = False
@@ -234,30 +222,9 @@ class GenerationMixin:
             streamer.end()
 
         if return_dict_in_generate:
-            if self.config.is_encoder_decoder:
-                return GenerateEncoderDecoderOutput(
-                    sequences=input_ids,
-                    scores=scores,
-                    logits=raw_logits,
-                    encoder_attentions=encoder_attentions,
-                    encoder_hidden_states=encoder_hidden_states,
-                    decoder_attentions=decoder_attentions,
-                    cross_attentions=cross_attentions,
-                    decoder_hidden_states=decoder_hidden_states,
-                    past_key_values=model_kwargs.get("past_key_values"),
-                )
-            else:
-                return GenerateDecoderOnlyOutput(
-                    sequences=input_ids,
-                    scores=scores,
-                    logits=raw_logits,
-                    attentions=decoder_attentions,
-                    hidden_states=decoder_hidden_states,
-                    past_key_values=model_kwargs.get("past_key_values"),
-                )
+            ...
         else:
             return input_ids # input_ids, all_hidden_states if you want to return latent embeddings
 ```
-</div>
 
 ## Latent Visual Reasoning Related Papers
