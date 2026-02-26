@@ -104,10 +104,8 @@ Motivated by this limitation, we explore whether text-space reasoning can more e
 <img width="2098" height="930" alt="image" src="https://github.com/user-attachments/assets/984d565d-f0aa-4822-a293-0935f0cbae26" />
 
 
-### Cases
-
 ## 🔧Code Implementation
-The pseudo [code](https://github.com/UMass-Embodied-AGI/Mirage) below provides the decoding logits for latent visual reasoning. The `self._sample` function in `transformers.generation.utils` controls how each token is decoded. Here, we utilize different switches `in_latent_mode, is_prefill, latent_start, latent_end, latent_num` to control the state of latent reasoning. Particuarly, `inputs_embeds = outputs.hidden_states` explicitly sets the input embeddings for the next token as the output hidden states from the last step. The manipulation of latent embedding could happen at here by adding gaussian noise or setting latent embedding as the same tensor. This framework provides a general and adaptable inference implmentation for various latent visual reasoning models such as Mirage, Monet and etc.
+The pseudo [code](https://github.com/UMass-Embodied-AGI/Mirage) below provides the decoding logits for latent visual reasoning. The `self._sample` function in `transformers.generation.utils` controls how each token is decoded. Here, we utilize different switches `in_latent_mode, is_prefill, latent_start, latent_end, latent_num` to control the state of latent reasoning. Particuarly, `inputs_embeds = outputs.hidden_states` explicitly sets the input embeddings for the next token as the output hidden states from the last step. The manipulation of latent embedding could happen at here by adding gaussian noise or setting latent embedding as the same tensor. This framework provides a **general and adaptable** inference implmentation for various latent visual reasoning models such as Mirage, Monet and etc.
 
 ```python
 class GenerationMixin:
@@ -227,4 +225,31 @@ class GenerationMixin:
             return input_ids # input_ids, all_hidden_states if you want to return latent embeddings
 ```
 
-## Latent Visual Reasoning Related Papers
+## 🖊Citation
+If you find this work useful, please use the following BibTeX. Thank you for your support!
+
+```bibtex
+@inproceedings{li-etal-2025-migician,
+    title = "Migician: Revealing the Magic of Free-Form Multi-Image Grounding in Multimodal Large Language Models",
+    author = "Li, You et al",
+    editor = "Che, Wanxiang  and
+      Nabende, Joyce  and
+      Shutova, Ekaterina  and
+      Pilehvar, Mohammad Taher",
+    booktitle = "Findings of the Association for Computational Linguistics: ACL 2025",
+    month = jul,
+    year = "2025",
+    address = "Vienna, Austria",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2025.findings-acl.512/",
+    doi = "10.18653/v1/2025.findings-acl.512",
+    pages = "9845--9867",
+    ISBN = "979-8-89176-256-5",
+}
+```
+
+## 🙏Acknowledgement
+We sincerely thank the following great works as they provide valuable data or code for our work:
+* [Mirage](https://github.com/UMass-Embodied-AGI/Mirage) (Provide Core Codebase)
+* [Monet](https://github.com/NOVAglow646/Monet) (Innovate Creative Methodology)
+* [LVR](https://github.com/VincentLeebang/lvr) (Extend LVR to General Scenario)
