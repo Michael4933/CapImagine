@@ -3,7 +3,7 @@
 <p align="center">
   <a href="https://scholar.google.com.hk/citations?user=RZ5bOS0AAAAJ&hl=zh-CN">You Li</a>,
   <a href="https://openreview.net/profile?id=~Chi_Chen1">Chen Chi*</a>,
-  <a href="https://openreview.net/profile?id=~Yanghao_Li2">Yanghao Li</a>,
+  <a href="https://openreview.net/profile?id=~Yanghao_Li2">Yanghao Li*</a>,
   <a href="https://aurorazengfh.github.io/">Fanhu Zeng</a> (📢Looking for PhD!),
   <a href="https://openreview.net/profile?id=~Kaiyu_Huang1">Kaiyu Huang</a>,
   Jinan Xu,
