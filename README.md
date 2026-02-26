@@ -109,4 +109,155 @@ Motivated by this limitation, we explore whether text-space reasoning can more e
 ## 🔧Code Implementation
 The main logits of the manipulation of latent tokens happen as illustrated below. We modify the method of `generate` in `transformers.generation.utils`, and further alter the function of `self._sample` to adapt it to supporting latent-based reasoning.
 
+<div style="max-height: 300px; overflow-y: auto;">  
+  
+```python
+class GenerationMixin:
+    ...
+    def _sample(
+        ...
+    ) -> Union[GenerateNonBeamOutput, torch.LongTensor]:
+
+        ...
+        
+        # Latent Mode Core Section
+        in_latent_mode = False
+        is_prefill = True
+        latent_start = False
+        latent_end = False
+        latent_num = 0
+        MAX_LATENT_LEN = 10 # latent size
+        latent_start_idx = 151666 # token index in vocabulary
+        latent_end_idx = 151667
+        latent_pad_idx = 151665
+        all_hidden_states = []
+
+        while self._has_unfinished_sequences(
+            this_peer_finished, synced_gpus, device=input_ids.device, cur_len=cur_len, max_length=max_length
+        ):
+            # adapatively change between inputting input_ids or inputs_embeds for latent reasoning
+            if not in_latent_mode:              
+                model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
+            else:
+                if latent_start:
+                    model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
+                    latent_start = False
+                else:
+                    model_inputs = self.prepare_inputs_for_generation(input_ids, inputs_embeds=inputs_embeds, **model_kwargs)
+                    assert model_inputs.get("inputs_embeds") is not None
+                    model_inputs['input_ids'] = None
+            
+            # prepare variable output controls (note: some models won't accept all output controls)
+            model_inputs.update({"output_attentions": output_attentions} if output_attentions else {})
+            model_inputs.update({"output_hidden_states": output_hidden_states} if output_hidden_states else {})
+
+            if is_prefill:
+                outputs = self(**model_inputs, return_dict=True, generate_mode=True)
+                is_prefill = False
+            else:
+                outputs = model_forward(**model_inputs, return_dict=True, generate_mode=True, latent_hidden_states=None)
+
+            # synced_gpus: don't waste resources running the code we don't need; kwargs must be updated before skipping
+            model_kwargs = self._update_model_kwargs_for_generation(
+                outputs, model_kwargs, is_encoder_decoder=self.config.is_encoder_decoder,
+            )
+            if synced_gpus and this_peer_finished:
+                continue
+
+            next_token_logits = outputs.logits[:, -1, :].clone().float()
+            next_token_logits = next_token_logits.to(input_ids.device)
+
+            next_token_scores = logits_processor(input_ids, next_token_logits)
+
+            # Store scores, attentions and hidden_states when required
+            if return_dict_in_generate:
+                ...
+
+            # token selection
+            if do_sample:
+                probs = nn.functional.softmax(next_token_scores, dim=-1)
+                next_tokens = torch.multinomial(probs, num_samples=1).squeeze(1)
+            else:
+                next_tokens = torch.argmax(next_token_scores, dim=-1)
+
+            # finished sentences should have their next token be a padding token
+            if has_eos_stopping_criteria:
+                next_tokens = next_tokens * unfinished_sequences + pad_token_id * (1 - unfinished_sequences)
+                
+            next_token_strs = [token.item() for token in next_tokens]
+
+            # start from earliest and end after last in batch
+            for i, token_str in enumerate(next_token_strs):
+                if token_str == latent_start_idx:
+                    in_latent_mode = True
+                    latent_start = True
+                    latent_end = False
+                
+                elif token_str == latent_end_idx:
+                    latent_num = 0
+                    latent_end = True
+                    in_latent_mode = False
+                
+                elif in_latent_mode:
+                    next_tokens[i] = latent_pad_idx
+                    
+            if in_latent_mode and not latent_end and not latent_start:
+                latent_num += 1
+
+                if latent_num > MAX_LATENT_LEN:
+                    latent_end = True
+                    in_latent_mode = False
+                    latent_start = False
+                    next_tokens[:] = latent_end_idx
+                    latent_num = 0
+                
+            input_ids = torch.cat([input_ids, next_tokens.unsqueeze(-1)], dim=-1)   
+            
+            if streamer is not None:
+                streamer.put(next_tokens.cpu())
+
+            unfinished_sequences = unfinished_sequences & ~stopping_criteria(input_ids, scores)
+            this_peer_finished = unfinished_sequences.max() == 0
+            cur_len += 1
+
+            # in latent mode, use latent embeds
+            if in_latent_mode and not latent_start:
+                inputs_embeds = outputs.hidden_states # essential, capturing the output hidden states from last step and sending inputting it to the next step
+                all_hidden_states.append(inputs_embeds.squeeze(0)) # accumulate all latent embedding
+            
+            del outputs
+
+        if len(all_hidden_states) != 0:
+            all_hidden_states = torch.cat(all_hidden_states, dim=0)
+        
+        if streamer is not None:
+            streamer.end()
+
+        if return_dict_in_generate:
+            if self.config.is_encoder_decoder:
+                return GenerateEncoderDecoderOutput(
+                    sequences=input_ids,
+                    scores=scores,
+                    logits=raw_logits,
+                    encoder_attentions=encoder_attentions,
+                    encoder_hidden_states=encoder_hidden_states,
+                    decoder_attentions=decoder_attentions,
+                    cross_attentions=cross_attentions,
+                    decoder_hidden_states=decoder_hidden_states,
+                    past_key_values=model_kwargs.get("past_key_values"),
+                )
+            else:
+                return GenerateDecoderOnlyOutput(
+                    sequences=input_ids,
+                    scores=scores,
+                    logits=raw_logits,
+                    attentions=decoder_attentions,
+                    hidden_states=decoder_hidden_states,
+                    past_key_values=model_kwargs.get("past_key_values"),
+                )
+        else:
+            return input_ids # input_ids, all_hidden_states if you want to return latent embeddings
+```
+</div>
+
 ## Latent Visual Reasoning Related Papers
