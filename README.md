@@ -12,7 +12,7 @@
 
 
 <p align="center">
-<a href='https://arxiv.org/abs/2501.05767'><img src='https://img.shields.io/badge/Paper-PDF-orange'></a> 
+<a href='https://arxiv.org/abs/2602.22766'><img src='https://img.shields.io/badge/Paper-PDF-orange'></a> 
 <a href='https://huggingface.co/Michael4933/CapImagine-7B'><img src='https://img.shields.io/badge/Model-Huggingface-red'></a> 
 <a href='https://huggingface.co/datasets/Michael4933/CapImagine-Data'><img src='https://img.shields.io/badge/Dataset-Huggingface-yellow'></a>
 
@@ -22,7 +22,7 @@ We believe our study provides a rigorous investigation of current latent visual 
 </p>
 
 ## 📰News
-* **[2026.02.26]** 🌞🌞🌞 Our paper has been released at [Arxiv](https://arxiv.org/abs/2501.05767) and [Huggingface Daily Papers](https://arxiv.org/abs/2501.05767)!
+* **[2026.02.26]** 🌞🌞🌞 Our paper has been released at [Arxiv](https://arxiv.org/abs/2602.22766) and [Huggingface Daily Papers](https://huggingface.co/papers/date/2026-02-27)!
 * **[2025.02.26]**  🌟🌟🌟 The model weights and datasets are now available on HuggingFace! 🤗 Download and have a try at [Huggingface Model](https://huggingface.co/Michael4933/CapImagine-7B) & [Huggingface Dataset](https://huggingface.co/Michael4933/CapImagine-Data)!
 
 ## 📝Abstract
@@ -38,7 +38,7 @@ Latent visual reasoning aims to mimic human's *imagination* process by meditatin
   Experiments on vision-centric benchmarks show that *CapImagine* significantly outperforms complex latent-space baselines, highlighting the superior potential of visual reasoning through explicit imagination.
 
 ## 🔍Causal Mediator Analysis
-Given input $X$, intermediate latent steps $Z$ and the final answer $Y$, we frame the whole reasoning process as $X \rightarrow Z \rightarrow Y$. Consequently, we conduct causal mediator analysis on the role of latent tokens by seperately intervening on input $X$ and latent steps $Z$. We investigate the behaviour of these latent tokens through similarity calculation, probing analysis and etc. Full empirical analysis could be found in section3 of our original [paper](https://arxiv.org/abs/2501.05767).  
+Given input $X$, intermediate latent steps $Z$ and the final answer $Y$, we frame the whole reasoning process as $X \rightarrow Z \rightarrow Y$. Consequently, we conduct causal mediator analysis on the role of latent tokens by seperately intervening on input $X$ and latent steps $Z$. We investigate the behaviour of these latent tokens through similarity calculation, probing analysis and etc. Full empirical analysis could be found in section3 of our original [paper](https://arxiv.org/abs/2602.22766).  
 
 <img width="8825" height="5024" alt="图片2" src="https://github.com/user-attachments/assets/9f539d92-99d8-454b-ac54-d34ac9053fe7" />  
 
@@ -229,22 +229,14 @@ class GenerationMixin:
 If you find this work useful, please use the following BibTeX. Thank you for your support!
 
 ```bibtex
-@inproceedings{li-etal-2025-migician,
-    title = "Migician: Revealing the Magic of Free-Form Multi-Image Grounding in Multimodal Large Language Models",
-    author = "Li, You et al",
-    editor = "Che, Wanxiang  and
-      Nabende, Joyce  and
-      Shutova, Ekaterina  and
-      Pilehvar, Mohammad Taher",
-    booktitle = "Findings of the Association for Computational Linguistics: ACL 2025",
-    month = jul,
-    year = "2025",
-    address = "Vienna, Austria",
-    publisher = "Association for Computational Linguistics",
-    url = "https://aclanthology.org/2025.findings-acl.512/",
-    doi = "10.18653/v1/2025.findings-acl.512",
-    pages = "9845--9867",
-    ISBN = "979-8-89176-256-5",
+@misc{li2026imaginationhelpsvisualreasoning,
+      title={Imagination Helps Visual Reasoning, But Not Yet in Latent Space}, 
+      author={You Li and Chi Chen and Yanghao Li and Fanhu Zeng and Kaiyu Huang and Jinan Xu and Maosong Sun},
+      year={2026},
+      eprint={2602.22766},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2602.22766}, 
 }
 ```
 
